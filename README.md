@@ -14,7 +14,7 @@ Suppose you've run the program at a computer with the address http://192.168.1.1
 
 http://192.168.1.123:6954/index.html
 
-You can play around with page, but probably you would want to play with others, so you need to host a room first
+You can play around with the page alone, but probably you would want to play with others, so you need to host a room first
 
 
 HOSTING A ROOM
@@ -26,7 +26,7 @@ Click "Host" at the top right corner. Enter your name and confirm. A room number
 JOINING A ROOM
 ==============
 
-If you want to join a hosted room, open the web app (again, entering something like http://192.168.1.123/index.html on a web browser), click "Join" at the top right corner, enter the room number (as told by your host) and your name, then confirm.
+If you want to join a hosted room, open the web app (again, entering something like http://192.168.1.123:6954/index.html on a web browser), click "Join" at the top right corner, enter the room number (as told by your host) and your name, then confirm.
 
 
 PLAYING WITH THE INTERFACE
