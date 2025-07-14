@@ -1,0 +1,368 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" >
+	<meta http-equiv="content-type" content="text/html;charset=utf-8">
+</head>
+<body onselectstart="return false;" ontouchmove="return false;">
+	<script type="text/javascript" src="vue.js"></script>
+	<script type="text/javascript" src="vuex.js"></script>
+	<script type="text/javascript" src="httpVueLoader.js"></script>
+	<script type="text/javascript" src="gamecontrol.js"></script>
+	<script type="text/javascript" src="dealerclasses.js"></script>
+
+	<script>
+		var cardset = 'trump';
+		if (location.search && location.search.match(/\bset=(\w+?)\b/)) cardset = RegExp.$1;
+		//document.write ('<scr'+'ipt type="text/javascript" src="'+cardset+'/makecards.js"></scr'+'ipt>');
+	</script>
+	<script>
+
+		window.oncontextmenu = function(event) {
+     event.preventDefault();
+     event.stopPropagation();
+     return false;
+};
+document.oncontextmenu = function (){return false;}
+
+var app;
+
+
+
+</script>
+
+<script>
+	document.write ("<scr"+"ipt src='//"+location.hostname+":6954/socket.io/socket.io.js'></scr"+"ipt>");
+</script>
+
+<script src="carddealerstore.js"></script>
+<script>
+window.store = store;
+
+
+
+</script>
+
+<script>
+var socket = typeof io == 'object' || typeof io == 'function'?io.connect('http://'+location.hostname+':6954'):null;
+var gameControl = new GameControl ({io:socket, socket:socket, store:store, cardset:cardset});
+</script>
+
+<style>
+	html, body {width:100%;height:100%;margin:0;}
+	body {box-sizing: border-box; font-family:Arial;font-size:2.2vh;}
+	html, body { overscroll-behavior: none;touch-action: manipulation; }	
+	body { -webkit-touch-callout: none !important;
+		-youbkit-touch-callout: none; /* iOS Safari */
+	-youbkit-user-select: none;   /* Chrome 6.0+, Safari 3.1+, Edge & Opera 15+ */
+	-moz-user-select: none;       /* Firefox */
+	-ms-user-select: none;        /* IE 10+ and Edge */
+	user-select: none;            /* Non-prefixed version, 
+								  currently supported by Chrome and Opera */ 
+
+   -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+	}
+
+	#gameinfo {
+		flex:0 1 5%;display:flex;
+
+
+	}
+
+
+	#playerinfo {
+		flex: 1 1 20%;
+		border:solid 1px gray;
+		display:flex;
+	}	
+
+	.otherplayerarea {position:relative;}
+	.otherplayerarea > div.aplayerarea {
+		border:solid 1px black;
+		margin-right:0vw;
+		flex:1 1 15vw;
+		padding:1vh 1vw;
+		display:flex;
+		flex-direction: column;	
+		overflow:hidden;
+		z-index:2;
+	}
+	.otherplayerarea div.playername {
+		flex:0 0 10%;
+	}
+	.otherplayerarea .cardstack.handstack {
+		display:flex;flex:1 1 40%;overflow:hidden;background:#dddddd;/*max-width:15vw;*/
+	}
+	.otherplayerarea .cardstack.effectstack {
+		display:flex;flex:1 1 50%;overflow:hidden;background:#eeeeee;/*max-width:15vw;*/
+	}
+
+
+	.playertab {flex: 0 1 15vw;border:solid 1px #333333;border-radius:1vh;margin:0.5vh;position:relative;}
+	.playertab.inactive {border-color:#dddddd;color:#bbbbbb;}
+	.playertab.targeted {background:yellow;}
+	.playertab.me {border:solid 2px #ffdd33;}
+	/*.playertab.me::after {content:"me";display:"block";position:absolute;bottom:0;right:0;background:#ffffcc;border-radius:0.5vh;padding:0.2vh 1vw;}*/
+	#roominfo {
+		flex: 0 0 20%;
+		border:solid 1px gray;
+		display:flex;
+
+	}
+	#roominfo > * {flex:1 1 0;}
+	.btn {border:outset 2px #999999;cursor:pointer;background:#eeeeee;border-radius:0;justify-content: center;align-items: center;display:flex;flex: 1 1 0;}
+	.btn:hover {border:inset 2px #999999;cursor:pointer;}
+
+	#bb {position:absolute;top:0;bottom:0;left:0;right:0;overflow:hidden;display:flex;flex-direction: column}
+
+	div.overlay {opacity:1;pointer-events:none;}
+
+	#overlaydiv {opacity:0.5;}
+	div.cardstack.targeted {background:yellow ! important;}
+
+	#choiceoverlay, #detailpane {position:absolute;top:0px;bottom:0px;right:0px;left:0px;background:#8c8b9bcc;padding:10vh 10vw;}
+	#choiceoverlay {z-index:10;}
+	#detailpane {z-index:5;}
+	#choiceoverlay div.choicediv {display:flex;flex-direction: column;height:100%;justify-content:center;}
+	#detailpane #stackreflectdiv {height:100%;width:100%;display:flex;align-items:center;}
+	#choiceoverlay div.choicediv .choicebtn {flex:1 1 0;}
+	#choiceoverlay div.close,
+	#detailpane div.close {position:absolute;top:0;right:0;}
+	#choiceoverlay div.close::after,
+	#detailpane div.close::after
+	 {content:"x";display:block;background:black;color:white;width:8vh;height:8vh;border-radius:4vh;font-size:8vh;text-align:center;font-family:Arial;line-height:8vh;cursor:pointer;}
+	#choiceoverlay div.inputrow {flex:1 1 0;background: white;display:flex;padding:2vh;justify-content: center;align-items:center;}
+	#choiceoverlay div.inputrow > span {flex: 1 1 0;text-align:right;padding-right:2vh;}
+	#choiceoverlay div.inputrow > input {flex: 2 1 0;}
+	#choiceoverlay div.inputsubmitbtnarea {flex:0 1 10%;background: white;display:flex;align-items: stretch;}
+	#choiceoverlay div.inputsubmitbtnarea > input {flex:1 1 auto;}
+
+	#reflectcardstack {height:64vw;width:100%;display:flex;max-height:100%;}
+	
+	.stacktokenarea {display:flex;flex-direction: row-reverse;flex-wrap:wrap;}
+	/*.stacktokenarea .token {margin:0.5vh;font-size:3vh;}*/
+
+	.stackdescription {position:absolute;z-index:1;top:0;left:0;right:0;bottom:0;display:flex;justify-content:center;align-items:center;font-size:3vh;opacity:0.2;}
+</style>
+
+<div id='bb' v-on:mousedown="onmousedown" v-on:mouseup="onmouseup" v-on:mousemove="onmousemove"  v-on:touchstart="ontouchstart" v-on:touchend="ontouchend" v-on:touchmove="ontouchmove">
+
+	<div id='gameinfo'>
+		<div id='playerinfo'>
+			<playerplate v-for="player in players" v-bind:key="player.order" v-bind:playerindex="player.index"></playerplate>
+		</div>
+		<div id='roominfo'>
+			<div id='hostbtn' class='btn' v-if="!roominfo.roomnum && myid" v-on:click="hostBtnClick">Host</div>
+			<div id='joinbtn' class='btn' v-if="!roominfo.roomnum && myid" v-on:click="joinBtnClick">Join</div>
+			<span id='roomnum' v-if="roominfo.roomnum" v-bind:style="{color:myid?'':'#ccc'}">{{roominfo.roomnum}}</span>
+		</div>
+	</div>
+
+<!--
+
+	<div id='otherplayerarea'>
+		<div v-for="player in players" v-if="!isMyPlayer(player)" class="aplayerarea">
+			<div class='playername'>{{player.name || '#' + (player.order + 1)}}</div>
+			<cardstack v-bind:key="'player_'+player.order+'_handstack'" v-bind:stackid="'player_'+player.order+'_handstack'">
+			</cardstack>
+			<cardstack v-bind:key="'player_'+player.order+'_effectstack'" v-bind:stackid="'player_'+player.order+'_effectstack'">
+			</cardstack>
+		</div>
+
+	</div>
+
+	<div id='publicarea'>
+
+		<cardstack key="discardstack2" stackid="discardstack2"></cardstack>
+
+
+		<cardstack key="discardstack" stackid="discardstack"></cardstack>
+
+
+		<cardstack key="drawstack" stackid="drawstack"></cardstack>
+
+
+	<cardstack key="effectstack" stackid="effectstack"></cardstack>
+
+	<cardstack key="handstack" stackid="handstack"></cardstack>
+
+	</div>
+-->
+	<div id='mainarea' style='flex:1 1 0;display:flex;flex-direction: column;overflow:hidden;'></div>
+	<!-- <con tainer v-bind="layoutdata"></con tainer> -->
+
+
+	<div id='overlaydiv' style='position:absolute;top:0px;left:0px;'>
+		<card v-for="item in stackcards.overlaystack" v-bind:overlayinfo="item.overlayinfo" v-bind:key="item.id" v-bind:alwaysshowback="item.showback" v-bind:cardid="item.id">
+		</card>
+		<token v-for="item in stacktokens.overlaystack" v-bind:tokenid="item.id" v-bind:overlayinfo="item.overlayinfo" v-bind:key="item.id"></token>
+	</div>
+
+	<div id='detailpane' style='display:none'>
+		<div class='close'></div>
+		<div id='stackreflectdiv'>
+			<cardstack eleid="reflectcardstack" v-bind:stackid="reflectingstackid" v-bind:flags="{reflecting:true}"></cardstack>
+		</div>
+	</div>
+
+ 
+</div>
+ 
+
+
+  
+ 
+
+<script> 
+document.getElementById('bb').style.display = 'none';
+var componentp = loadComponents();
+var gameinfop = new Promise(async function(resolve,reject) {
+	let m = await import('./game_'+cardset+'.js');
+	if (!m) reject();
+	let gi = await m.getGameInfo();
+	if (!gi) reject();
+	resolve(gi);
+});
+Promise.all([componentp, gameinfop]).then (async function() {
+	let comps = await componentp;
+	for (let k in comps) Vue.component (k, comps[k]);
+
+	let gi = await gameinfop;
+	var allcards = gi.cards;
+	var alltokens = gi.tokens;
+	gi.gameControl = gameControl;
+
+	store.commit('setAllCardsIdx', gi.allcardsidx);
+	store.commit('setAllTokensIdx', gi.alltokensidx);
+	store.commit('setPlayerPlateInfo', gi.playerplateinfo);
+	store.commit('setCardStackInfo', gi.cardstackinfo);
+
+	if (gi.additionalcss) {
+		let csstag = document.createElement('style');
+		csstag.innerHTML = gi.additionalcss;
+		document.querySelector('head').appendChild(csstag);
+	}
+
+	if (gi.layoutinfo) {
+		let h = generateLayoutHtml(gi.layoutinfo);
+		h = h.replace(/^<[^<>]*?>|<[^<>]*?>$/g,'');
+		document.getElementById('mainarea').innerHTML = h;
+	}
+
+	var vueappdata = prepareAppOptions(gi);
+	//vueappdata.components = await componentp;
+	vueappdata.store = store;
+
+
+	app = new Vue (vueappdata);
+
+	gameControl.app = app;
+
+
+	if (gi.initsetup) {
+		for (let ctype in gi.initsetup) {
+			if (ctype != 'cards' && ctype != 'tokens') continue;
+			let s = gi[ctype];
+			if (gi.initsetup[ctype].stackid) {
+				let a = [];
+				for (let i = 0; i < s.length; i++) a.push (s[i].id);
+				let o = {'stackid':gi.initsetup[ctype].stackid};
+				o[ctype] = a;
+				store.commit('setComponentChildren', o);
+			} else if (gi.initsetup[ctype].byclass) {
+				let cf = gi.initsetup[ctype]['useclass'];
+				let ss = {};
+				for (let i = 0; i < s.length; i++) {
+					let stackid = gi.initsetup[ctype].byclass[s[i][cf]];
+					if (!ss[stackid]) ss[stackid] = [];
+					ss[stackid].push (s[i].id);
+				}
+				for (let k in ss) {
+					let o = {'stackid':k};
+					o[ctype] = ss[k];
+					store.commit('setComponentChildren', o);
+				}
+			}
+		}
+		if (gi.initsetup['stackoperations']) for (let i = 0; i < gi.initsetup['stackoperations'].length;i++) {
+			let o = gi.initsetup['stackoperations'][i];
+			gameControl.stackOperation(o.stackid,o.prms);
+		}
+	} else {
+
+
+
+		//let a = [];
+		//for (let i = 0; i < allcardnums.length; i++) a.push (i);
+		//a.sort(function() {return Math.random() > 0.5?-1:1;});
+		if (allcards) {
+			let a = [];
+			for (let i = 0; i < allcards.length; i++) a.push (allcards[i].id);
+			store.commit('setComponentChildren', {'stackid':'drawstack', 'cards':a});
+			//let item = {};
+			//item.id = allcards[a[i]].id;
+			//item.cardinfo = allcards[a[i]];
+			//item.cardstatus = cardstatus[item.id];
+			//app.stackcards['drawstack'].push ({'id':allcards[i].id});
+		}
+		/*
+		if (alltokens) for (let i =0; i < alltokens.length; i++) {
+			app.stacktokens['discardstack'].push ({'id':alltokens[i].id});
+		}
+		*/
+		if (alltokens) {
+			let a = [];
+			for (let i = 0; i < alltokens.length; i++) a.push (alltokens[i].id);
+			store.commit('setComponentChildren', {'stackid':'discardstack', 'tokens':a});
+		}
+		gameControl.stackOperation('drawstack','SHUFFLE');
+	}
+
+	document.getElementById('bb').style.display = '';
+
+});
+
+function insertTestPlayers() {
+	store.commit('setPlayers',{'players':[
+		{'id':socket?socket.id:null, 'order':0, 'index':0, 'name':'Hello'},
+		{'order':1, 'index':1, 'name':'World'},
+		{'order':2, 'index':2, 'name':'!!'},
+	]});
+}
+
+/*
+var c1 = new c;
+c1['number'] = '5H';
+c1['aspectratio'] = '40';
+c1['back'] = true;
+c1.$mount();
+app.$el.appendChild(c1.$el);
+
+var c2 = new c;
+c2['aspectratio'] = '50';
+c2['imagesrc'] = 'test.png';
+c2.$mount();
+app.$el.appendChild(c2.$el);
+*/
+
+
+ /*
+var app2 = new Vue ({
+	el:'#b2',
+	data:{
+		'items':[]
+	},
+	methods:{
+		test1(e) {
+			//console.log(e.target.nodeName);
+		}
+	}
+});
+app2.items.push ({'number':'A', 'aspectratio':'66'});
+app2.items.push ({'number':'2B', 'aspectratio':'66'});
+app2.items.push ({'imagesrc':'test.png', 'aspectratio':'50'});
+ */
+</script>
+</body>
+</html>
